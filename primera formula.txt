@@ -1,0 +1,133 @@
+import pygame
+import random
+
+pygame.init()
+
+# Configurar pantalla
+width, height = 600, 400
+screen = pygame.display.set_mode((width, height))
+pygame.display.set_caption("PapuSnakeGame")
+
+# Colores
+Black = (0, 0, 0)
+Green = (50, 205, 50)
+Rojo = (255, 0, 0)
+
+# Jugador (cuadrado)
+cellsize = 20
+player = pygame.Rect(300, 200, cellsize, cellsize)
+snake = [player.copy()]
+velocity = cellsize
+direction = "right"
+# Reloj de FPS
+CLOCK = pygame.time.Clock()
+
+#Food (random.randint(...) Posiciona la comida en lugares aleatorios)
+food = pygame.Rect(
+    random.randint(0, (width - cellsize) // cellsize) * cellsize,
+    random.randint(0, (height - cellsize) // cellsize) * cellsize,
+    cellsize, cellsize
+)
+# Bucle principal
+running = True
+while running:
+
+    CLOCK.tick(10)
+    
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+        elif event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_LEFT and direction != "right":
+                direction = "left"
+            elif event.key == pygame.K_RIGHT and direction != "left":
+                direction = "right"
+            elif event.key == pygame.K_UP and direction != "down":
+                direction = "up"
+            elif event.key == pygame.K_DOWN and direction != "up":
+                direction = "down"
+
+    # Movimiento de la serpiente
+if direction == "left":
+    new_head = player.move(-velocity, 0)
+elif direction == "right":
+    new_head = player.move(velocity, 0)
+elif direction == "up":
+    new_head = player.move(0, -velocity)
+elif direction == "down":
+    new_head = player.move(0, velocity)
+
+# Warp movement para la nueva cabeza
+if new_head.x >= width:
+    new_head.x = 0
+elif new_head.x < 0:
+    new_head.x = width - cellsize
+
+if new_head.y >= height:
+    new_head.y = 0
+elif new_head.y < 0:
+    new_head.y = height - cellsize
+
+# Insertar nueva cabeza al inicio de la lista
+snake.insert(0, new_head)
+
+# Verificar si comió comida
+if new_head.colliderect(food):
+    food.x = random.randint(0, (width - cellsize) // cellsize) * cellsize
+    food.y = random.randint(0, (height - cellsize) // cellsize) * cellsize
+else:
+    # Si no comió, quitamos el último segmento (cola)
+    snake.pop()
+
+# Actualizar el jugador (la cabeza actual)
+player = new_head
+# Warp Movement (Para que aparezca movimiento en el lado opuesto)
+   # if player.left > width:
+       # player.right = 0
+    #elif player.right < 0:
+      #  player.left = width
+
+   # if player.top > height:
+      #  player.bottom = 0
+    #elif player.bottom < 0:
+       # player.top = height
+
+    # Dibujar
+screen.fill(Black)
+pygame.draw.rect(screen, Rojo, food)
+pygame.draw.rect(screen, Green, player)
+pygame.display.update()
+
+# Salir del juego
+pygame.quit()
+
+# cosas que tuve que sacar
+#Movimiento continuo en una direccion
+    #if direction == "left":
+       # player.x -= velocity
+    #elif direction == "right":
+      #  player.x += velocity
+   # elif direction == "up":
+     #   player.y -= velocity
+   # elif direction == "down":
+     #   player.y += velocity
+        
+   # if player.x >= width:
+      #  player.x = 0
+    #elif player.x < 0:
+    #    player.x = width - cellsize
+
+    #if player.y >= height:
+     #   player.y = 0
+   # elif player.y < 0:
+      #  player.y = height-cellsize
+    # Movimiento con teclas (con límites)
+    #button = pygame.key.get_pressed()
+    #if button[pygame.K_LEFT] and player.x > 0:
+        #player.x -= velocity
+   # if button[pygame.K_RIGHT] and player.x + player.width < width:
+      #  player.x += velocity
+   # if button[pygame.K_UP] and player.y > 0:
+       # player.y -= velocity
+    #if button[pygame.K_DOWN] and player.y + player.height < height:
+       # player.y += velocity
