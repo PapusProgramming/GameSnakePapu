@@ -31,7 +31,7 @@ Clone this repository:
 
 bash
 Copy code
-git clone [https://github.com/pogo31/GameSnakePapu.git]
+git clone [https://github.com/PapusProgramming/GameSnakePapu.git]
 Navigate into the project folder:
 
 bash
