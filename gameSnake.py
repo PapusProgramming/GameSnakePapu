@@ -2,7 +2,13 @@ import pygame
 import random
 import sys
 
+import pygame.display
+
 pygame.init()
+
+menu_options = ["Play", "Leaderboard", "Credits", "Exit"]
+selected_option = 0
+state = "Menu"
 
 # Configurar pantalla
 width, height = 600, 400
@@ -48,6 +54,7 @@ def reset_game():
         random.randint(0, (height - cellsize) // cellsize) * cellsize,
         cellsize, cellsize
     )
+    score = 0
 
 # Bucle principal
 running = True
@@ -59,86 +66,110 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-        elif event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_LEFT and direction != "right":
-                direction = "left"
-            elif event.key == pygame.K_RIGHT and direction != "left":
-                direction = "right"
-            elif event.key == pygame.K_UP and direction != "down":
-                direction = "up"
-            elif event.key == pygame.K_DOWN and direction != "up":
-                direction = "down"
+        if event.type == pygame.KEYDOWN:
+            if state == "Menu":
+                if event.key == pygame.K_UP:
+                    selected_option = (selected_option -1) % len(menu_options)
+                elif event.key == pygame.K_DOWN:
+                    selected_option = (selected_option + 1) % len(menu_options)
+                elif event.key == 1073741912:
+                    print("Enter detectado")
+                    selected = menu_options[selected_option]
+                    print(f"Pressed Enter, selected: {selected}")
+                    if selected == "Play":
+                        state = "Playing"
+                        reset_game()
+                    elif selected == "Leaderboard":
+                        state = "Leaderboard"
+                    elif selected == "Credits":
+                        state = "Credits"
+                    elif selected == "Exit":
+                        running = False
+            elif state == "Playing":
+                    if event.key == pygame.K_LEFT and direction != "right":
+                        direction = "left"
+                    elif event.key == pygame.K_RIGHT and direction != "left":
+                        direction = "right"
+                    elif event.key == pygame.K_UP and  direction != "down":
+                        direction = "up"
+                    elif event.key == pygame.K_DOWN and direction != "up":
+                        direction = "down"
 
-    # Movimiento de la cabeza
-    if game_over:
-        screen.fill(Black)
-        font_big = pygame.font.SysFont(None, 60)
-        game_over_text = font_big.render("Game Over", True, Red)
-        screen.blit(game_over_text, (width // 2 - game_over_text.get_width() // 2, height // 2 - 40))
+    #Draw
+    screen.fill(Black)
 
-        font_small = pygame.font.SysFont(None, 36)
-        score_text = font_small.render(f"Score: {score}", True, (255,255,255))
-        screen.blit(score_text, (width // 2 - score_text.get_width() // 2, height // 2 + 10))
-
-        instructions = font_small.render("Press SPACE to restart", True, White)
-        screen.blit(instructions, (width // 2 - instructions.get_width() // 2, height // 2 + 50))
-
-        pygame.display.update()
-
-        keys = pygame.key.get_pressed()
-        if keys[pygame.K_SPACE]:
-            reset_game()
-            score = 0
-            game_over = False
-        continue #Salta todo si estamos game over
-
-# Movimiento
-    if direction == "left":
-        new_head = player.move(-velocity, 0)
-    elif direction == "right":
-        new_head = player.move(velocity, 0)
-    elif direction == "up":
-        new_head = player.move(0, -velocity)
-    elif direction == "down":
-        new_head = player.move(0, velocity)
+    if state == "Menu":
+        title = font.render("Snake de Papu", True, Green)
+        screen.blit(title, (width // 2 - title.get_width() // 2, 50))
+        for i, option in enumerate(menu_options):
+            color = White if i != selected_option else Red
+            text = font.render(option, True, color)
+            screen.blit(text, (width // 2 - text.get_width() // 2, 150 + i * 40))
+    # Solo mover cuandoestamos playing
+    elif state == "Playing":
+        if not game_over:
+        # Movimiento
+            if direction == "left":
+                new_head = player.move(-velocity, 0)
+            elif direction == "right":
+                new_head = player.move(velocity, 0)
+            elif direction == "up":
+                new_head = player.move(0, -velocity)
+            elif direction == "down":
+                new_head = player.move(0, velocity)
 
     # Warp Movement
-    if new_head.x >= width:
-        new_head.x = 0
-    elif new_head.x < 0:
-        new_head.x = width - cellsize
-    if new_head.y >= height:
-        new_head.y = 0
-    elif new_head.y < 0:
-        new_head.y = height - cellsize
+            if new_head.x >= width:
+                new_head.x = 0
+            elif new_head.x < 0:
+                new_head.x = width - cellsize
+            if new_head.y >= height:
+                new_head.y = 0
+            elif new_head.y < 0:
+                new_head.y = height - cellsize
 
     # Agregar nueva cabeza
-    snake.insert(0, new_head)
+            snake.insert(0, new_head)
 
-    if new_head in snake[1:]:
-        game_over = True
+            if new_head in snake[1:]:
+                game_over = True
 
 
         # Comer comida o mover
-    if new_head.colliderect(food):
-        score += 50
-        food.x = random.randint(0, (width - cellsize) // cellsize) * cellsize
-        food.y = random.randint(0, (height - cellsize) // cellsize) * cellsize
-        
-    else:
-        snake.pop()
+            if new_head.colliderect(food):
+                score += 50
+                food.x = random.randint(0, (width - cellsize) // cellsize) * cellsize
+                food.y = random.randint(0, (height - cellsize) // cellsize) * cellsize
+            else:
+                snake.pop()
 
     # Actualizar cabeza
-    player = new_head
+            player = new_head
 
-    # Dibujar todo
-    screen.fill(Black)
-    font = pygame.font.SysFont(None, 30)
-    score_text = font.render("Score: " + str(score), True, White)
-    screen.blit(score_text, (10, 10))
-    pygame.draw.rect(screen, Red, food)
-    for segment in snake:
-        pygame.draw.rect(screen, Green, segment)
+        for segment in snake:
+            pygame.draw.rect(screen, Green, segment)
+        pygame.draw.rect(screen, Red, food)
+        font_score = pygame.font.SysFont(None, 36)
+        score_text = font_score.render(f"Score: {score}", True, White)
+        screen.blit(score_text, (10, 10))
+
+        if game_over:
+            font_big = pygame.font.SysFont(None, 60)
+            game_over_text = font_big.render("Game Over", True, Red)
+            screen.blit(game_over_text, (width // 2 - game_over_text.get_width() // 2, height // 2 - game_over_text.get_height() // 2 - 100))
+
+            font_small = pygame.font.SysFont(None, 36)
+            restart_text = font_small.render("Press SPACE to restart", True, White)
+            screen.blit(restart_text, (width // 2 - restart_text.get_width() // 2, height // 2))
+
+            font_score = pygame.font.SysFont(None, 36)
+            score_text = font_score.render(f"Score: {score}", True, White)
+            screen.blit(score_text, (width // 2 - score_text.get_width() // 2, height // 2 + 50))
+            keys = pygame.key.get_pressed()
+            if keys[pygame.K_SPACE]:
+                reset_game()
+                game_over = False
+
 
     pygame.display.update()
 pygame.quit()
