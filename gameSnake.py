@@ -56,6 +56,33 @@ def reset_game():
     )
     score = 0
 
+#Leaderboard
+def load_leaderboard():
+    try:
+        with open("leaderboard.txt", "r") as f:
+            entries = []
+            for line in f:
+                if ":" in line:
+                    parts = line.strip().split(":")
+                    if len(parts) == 2 and parts[1].isdigit():
+                        entries.append((parts[0], int(parts[1])))
+            return entries
+    except FileNotFoundError:
+        return []
+
+def save_leaderboard(entries):
+    with open("leaderboard.txt", "w") as f:
+        for name, score in entries:
+            f.write(f"{name}:{score}\n")
+
+def update_leaderboard(new_score):
+    leaderboard = load_leaderboard()
+    if len(leaderboard) < 8 or new_score > leaderboard[-1][1]:
+        name = input("New High Score! Enter your name: ")
+        leaderboard.append((name, new_score))
+        leaderboard = sorted(leaderboard, key=lambda x: x[1], reverse=True)[:8]
+        save_leaderboard(leaderboard)
+
 # Bucle principal
 running = True
 game_over = False
@@ -73,7 +100,7 @@ while running:
                 elif event.key == pygame.K_DOWN:
                     selected_option = (selected_option + 1) % len(menu_options)
                 elif event.key == 1073741912:
-                    print("Enter detectado")
+                    print("Enter detected")
                     selected = menu_options[selected_option]
                     print(f"Pressed Enter, selected: {selected}")
                     if selected == "Play":
@@ -94,6 +121,9 @@ while running:
                         direction = "up"
                     elif event.key == pygame.K_DOWN and direction != "up":
                         direction = "down"
+            elif state == "Leaderboard":
+                        if event.key == pygame.K_ESCAPE:
+                            state = "Menu"
 
     #Draw
     screen.fill(Black)
@@ -133,6 +163,7 @@ while running:
 
             if new_head in snake[1:]:
                 game_over = True
+                update_leaderboard(score)
 
 
         # Comer comida o mover
@@ -142,7 +173,6 @@ while running:
                 food.y = random.randint(0, (height - cellsize) // cellsize) * cellsize
             else:
                 snake.pop()
-
     # Actualizar cabeza
             player = new_head
 
@@ -167,9 +197,25 @@ while running:
             screen.blit(score_text, (width // 2 - score_text.get_width() // 2, height // 2 + 50))
             keys = pygame.key.get_pressed()
             if keys[pygame.K_SPACE]:
+                update_leaderboard(score)
                 reset_game()
                 game_over = False
 
+    elif state == "Leaderboard":
+                    screen.fill(Black)
+                    title = font.render("Leaderboard", True, Green)
+                    screen.blit(title, (width // 2 - title.get_width() // 2, 50))
+
+                    leaderboard = load_leaderboard()
+                    font_small = pygame.font.SysFont(None, 32)
+
+                    for i, (name, score_value) in enumerate(leaderboard):
+                        entry_text = f"{i + 1}. {name} - {score_value}"
+                        text = font_small.render(entry_text, True, White)
+                        screen.blit(text,(width // 2 - text.get_width() // 2, 120 + i * 30))
+
+                    back_text = font_small.render("Press ESC to return", True, Red)
+                    screen.blit(back_text, (width // 2 - back_text.get_width() // 2, height - 50))
 
     pygame.display.update()
 pygame.quit()
