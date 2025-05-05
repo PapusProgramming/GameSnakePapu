@@ -26,6 +26,7 @@ cellsize = 20
 player = pygame.Rect(300, 200, cellsize, cellsize)
 snake = [player.copy()]
 velocity = cellsize
+speed_level = 1
 direction = "right"
 
 # Comida
@@ -41,9 +42,15 @@ CLOCK = pygame.time.Clock()
  #Fuente
 font = pygame.font.SysFont(None, 48)
 
+#Main game velocity
+fps = 10
+
 #Puntuacion
 score = 0
 
+def update_speed():
+        global fps
+        fps = 10 + (score // 1000) * 2
 def reset_game():
     global snake, player, direction, food , score
     player = pygame.Rect(300, 200, cellsize, cellsize)
@@ -83,11 +90,15 @@ def update_leaderboard(new_score):
         leaderboard = sorted(leaderboard, key=lambda x: x[1], reverse=True)[:8]
         save_leaderboard(leaderboard)
 
+def update_speed():
+     global fps
+     fps = 10 + (score // 1000) * 2
+
 # Bucle principal
 running = True
 game_over = False
 while running:
-    CLOCK.tick(10)
+    CLOCK.tick(fps)
 
     # Eventos
     for event in pygame.event.get():
@@ -99,7 +110,7 @@ while running:
                     selected_option = (selected_option -1) % len(menu_options)
                 elif event.key == pygame.K_DOWN:
                     selected_option = (selected_option + 1) % len(menu_options)
-                elif event.key == 1073741912:
+                elif event.key == pygame.K_RETURN or event.key == 1073741912:
                     print("Enter detected")
                     selected = menu_options[selected_option]
                     print(f"Pressed Enter, selected: {selected}")
@@ -124,6 +135,9 @@ while running:
             elif state == "Leaderboard":
                         if event.key == pygame.K_ESCAPE:
                             state = "Menu"
+            elif state == "Credits":
+                        if event.key == pygame.K_ESCAPE:
+                             state = "Menu"
 
     #Draw
     screen.fill(Black)
@@ -135,6 +149,19 @@ while running:
             color = White if i != selected_option else Red
             text = font.render(option, True, color)
             screen.blit(text, (width // 2 - text.get_width() // 2, 150 + i * 40))
+
+    elif state == "Credits":
+         screen.fill(Black)
+         title = font.render("Credits", True, Green)
+         screen.blit(title, (width // 2 - title.get_width() // 2, 50))
+
+         font_small = pygame.font.SysFont(None, 32)
+         credits_text = font_small.render("Made by PapusProgramming", True, Red)
+         screen.blit(credits_text, (width // 2 - credits_text.get_width() // 2, height // 2))
+
+         back_text = font_small.render("Press ESC to Return", True, White)
+         screen.blit(back_text, (width // 2 - back_text.get_width() // 2, height - 50))
+
     # Solo mover cuandoestamos playing
     elif state == "Playing":
         if not game_over:
@@ -148,7 +175,7 @@ while running:
             elif direction == "down":
                 new_head = player.move(0, velocity)
 
-    # Warp Movement
+        # Warp Movement
             if new_head.x >= width:
                 new_head.x = 0
             elif new_head.x < 0:
@@ -158,7 +185,7 @@ while running:
             elif new_head.y < 0:
                 new_head.y = height - cellsize
 
-    # Agregar nueva cabeza
+        # Agregar nueva cabeza
             snake.insert(0, new_head)
 
             if new_head in snake[1:]:
@@ -169,11 +196,12 @@ while running:
         # Comer comida o mover
             if new_head.colliderect(food):
                 score += 50
+                update_speed()
                 food.x = random.randint(0, (width - cellsize) // cellsize) * cellsize
                 food.y = random.randint(0, (height - cellsize) // cellsize) * cellsize
             else:
                 snake.pop()
-    # Actualizar cabeza
+        # Actualizar cabeza
             player = new_head
 
         for segment in snake:
@@ -189,17 +217,24 @@ while running:
             screen.blit(game_over_text, (width // 2 - game_over_text.get_width() // 2, height // 2 - game_over_text.get_height() // 2 - 100))
 
             font_small = pygame.font.SysFont(None, 36)
-            restart_text = font_small.render("Press SPACE to restart", True, White)
+            restart_text = font_small.render("Press SPACE to Restart", True, White)
             screen.blit(restart_text, (width // 2 - restart_text.get_width() // 2, height // 2))
 
             font_score = pygame.font.SysFont(None, 36)
             score_text = font_score.render(f"Score: {score}", True, White)
             screen.blit(score_text, (width // 2 - score_text.get_width() // 2, height // 2 + 50))
+
+            esc_text = font_small.render("Press ESC to Main Menu", True, Red)
+            screen.blit(esc_text, (width // 2 - esc_text.get_width() // 2, height // 2 + 100))
+
             keys = pygame.key.get_pressed()
             if keys[pygame.K_SPACE]:
                 update_leaderboard(score)
                 reset_game()
                 game_over = False
+            elif keys[pygame.K_ESCAPE]:
+                 state = "Menu"
+                 game_over = False
 
     elif state == "Leaderboard":
                     screen.fill(Black)
@@ -209,13 +244,19 @@ while running:
                     leaderboard = load_leaderboard()
                     font_small = pygame.font.SysFont(None, 32)
 
-                    for i, (name, score_value) in enumerate(leaderboard):
-                        entry_text = f"{i + 1}. {name} - {score_value}"
-                        text = font_small.render(entry_text, True, White)
-                        screen.blit(text,(width // 2 - text.get_width() // 2, 120 + i * 30))
+                    x_name = 50
+                    x_score = 400
 
-                    back_text = font_small.render("Press ESC to return", True, Red)
-                    screen.blit(back_text, (width // 2 - back_text.get_width() // 2, height - 50))
+                    for i, (name, score_value) in enumerate(leaderboard):
+                         rank_text = font_small.render(f"{i + 1}. {name}", True, White)
+                         score_text = font_small.render(str(score_value), True, White)
+
+                         y = 120 + i * 30
+                         screen.blit(rank_text, (x_name, y))
+                         screen.blit(score_text, (x_score, y))
+
+                    back_text = font_small.render("Press ESC to Return", True, Red)
+                    screen.blit(back_text, (width // 2 - back_text.get_width() // 2, height - 40))
 
     pygame.display.update()
 pygame.quit()
