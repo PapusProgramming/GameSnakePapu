@@ -2,7 +2,7 @@ papu:2050
 Nattalie:1900
 Jordi:1500
 Papukk:1500
+papux:1250
 Canana:1200
 Angel:1100
 Florencio:1000
-Bob:950
