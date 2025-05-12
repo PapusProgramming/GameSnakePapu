@@ -1,24 +1,2 @@
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-
-.vscode/
-.idea/
-
-.DS_Store
-Thumbs.db
-
-venv/
-env/
-
-*.log
-*.tmp
-
-*.exe
-*.dll
-*.so
-*.dylib
-
-.env
-*.bak
+# Created by venv; see https://docs.python.org/3/library/venv.html
+*
