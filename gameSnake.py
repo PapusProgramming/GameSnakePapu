@@ -4,8 +4,6 @@ import pygame
 import random
 import sys
 
-import pygame.display
-
 pygame.init()
 
 menu_options = ["Play", "Leaderboard", "Credits", "Exit"]
