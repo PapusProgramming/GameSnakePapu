@@ -1,12 +1,13 @@
 #disallow duplicates on leaderboard
 #use right leaderboard
-#global variable for enter key wit intro image
+#global variable for enter key
 
 #!/usr/bin/env python3
 
 import pygame
 import random
 import sys
+import os
 
 pygame.init()
 
@@ -104,7 +105,31 @@ def get_highest_score():
 
 highest_score = get_highest_score()
 
+# Get path to this script's directory
+base_dir = os.path.dirname(os.path.abspath(__file__))
+image_path = os.path.join(base_dir, "papusprogramming.png")  # Make sure this file is in the same directory
+
+# Load and scale the intro image
+intro_image = pygame.image.load(image_path)
+intro_image = pygame.transform.scale(intro_image, (width, height))
+
+def show_intro():
+    screen.blit(intro_image, (0, 0))
+    pygame.display.update()
+    start_time = pygame.time.get_ticks()
+    showing = True
+    while showing:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+        if pygame.time.get_ticks() - start_time > 3000:
+            showing = False
+
+
+
 # Bucle principal
+show_intro()
 running = True
 game_over = False
 
