@@ -111,10 +111,11 @@ image_path = os.path.join(base_dir, "papusprogramming.png")  # Make sure this fi
 
 # Load and scale the intro image
 intro_image = pygame.image.load(image_path)
-intro_image = pygame.transform.scale(intro_image, (width, height))
+intro_image = pygame.transform.scale(intro_image, (550, 350))
 
 def show_intro():
-    screen.blit(intro_image, (0, 0))
+    image_rect = intro_image.get_rect(center=(width // 2, height // 2))
+    screen.blit(intro_image, image_rect.topleft)
     pygame.display.update()
     start_time = pygame.time.get_ticks()
     showing = True
