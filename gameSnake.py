@@ -1,3 +1,4 @@
+#check if there is a way to make it more online-like?
 #global variable for enter key
 
 #!/usr/bin/env python3
@@ -165,7 +166,7 @@ while running:
                     selected_option = (selected_option - 1) % len(menu_options)
                 elif event.key == pygame.K_DOWN:
                     selected_option = (selected_option + 1) % len(menu_options)
-                elif if event.key in pygame.K_RETURN, pygame.K_KP_ENTER:
+                elif event.key == pygame.K_RETURN or event.key == 1073741912:
                     selected = menu_options[selected_option]
 
                     if selected == "Play":
@@ -196,9 +197,8 @@ while running:
                 state = "Menu"
 
             elif state == "EnterName":
-                if (event.key in (pygame.K_RETURN, pygame.K_KP_ENTER)):
-                    if check_high_score(score):
-                        update_leaderboard(input_name, score)
+                if event.key == pygame.K_RETURN or event.key == 1073741912 and input_name:
+                    update_leaderboard(input_name, score)
                     input_name = ""
                     new_high_score = False
                     highest_score = get_highest_score()
@@ -344,3 +344,4 @@ while running:
     pygame.display.update()
 
 pygame.quit()
+
