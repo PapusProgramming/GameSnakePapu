@@ -1,5 +1,4 @@
 #disallow duplicates on leaderboard
-#use right leaderboard
 #global variable for enter key
 
 #!/usr/bin/env python3
@@ -71,7 +70,7 @@ def reset_game():
 
 def load_leaderboard():
     try:
-        with open("leaderboard.txt", "r") as f:
+        with open(leaderboard_path, "r") as f:
             entries = []
             for line in f:
                 if ":" in line:
@@ -82,8 +81,13 @@ def load_leaderboard():
     except FileNotFoundError:
         return []
 
+# Get path to this script's directory
+base_dir = os.path.dirname(os.path.abspath(__file__))
+image_path = os.path.join(base_dir, "papusprogramming.png")  # Make sure this file is in the same directory
+leaderboard_path = os.path.join(base_dir, "leaderboard.txt") # Make sure this file is in the same directory
+
 def save_leaderboard(entries):
-    with open("leaderboard.txt", "w") as f:
+    with open(leaderboard_path, "w") as f:
         for name, score in entries:
             f.write(f"{name}:{score}\n")
 
@@ -104,10 +108,6 @@ def get_highest_score():
     return 0
 
 highest_score = get_highest_score()
-
-# Get path to this script's directory
-base_dir = os.path.dirname(os.path.abspath(__file__))
-image_path = os.path.join(base_dir, "papusprogramming.png")  # Make sure this file is in the same directory
 
 # Load and scale the intro image
 intro_image = pygame.image.load(image_path)
