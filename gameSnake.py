@@ -1,7 +1,6 @@
 #disallow duplicates on leaderboard
 #use right leaderboard
 #global variable for enter key wit intro image
-#test
 
 #!/usr/bin/env python3
 
