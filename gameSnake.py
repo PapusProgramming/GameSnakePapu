@@ -1,3 +1,7 @@
+#disallow duplicates on leaderboard
+#global variable for enter key wit intro image
+
+
 #!/usr/bin/env python3
 
 import pygame
