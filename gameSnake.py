@@ -1,4 +1,4 @@
-#disallow duplicates on leaderboard
+#check if there is a way to make it more online-like?
 #global variable for enter key
 
 #!/usr/bin/env python3
