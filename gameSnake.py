@@ -70,32 +70,34 @@ def reset_game():
     food.y = random.randint(0, (height - cellsize) // cellsize) * cellsize
     score = 0
 
-# Online leaderboard
-FIREBASE_DB_URL = "https://papusnakeleaderboard-default-rtdb.firebaseio.com/"
-
 def load_leaderboard():
     try:
-        res = requests.get(f"{FIREBASE_DB_URL}/scores.json")
-        if res.status_code == 200 and res.json():
-            data = res.json()
-            entries = [(v["name"], v["score"]) for v in data.values()]
-            return sorted(entries, key=lambda x: x[1], reverse=True)[:8]
-    except Exception as e:
-        print("Failed to load leaderboard:", e)
-    return []
+        with open(leaderboard_path, "r") as f:
+            entries = []
+            for line in f:
+                if ":" in line:
+                    parts = line.strip().split(":")
+                    if len(parts) == 2 and parts[1].isdigit():
+                        entries.append((parts[0], int(parts[1])))
+            return entries
+    except FileNotFoundError:
+        return []
 
 # Get path to this script's directory
 base_dir = os.path.dirname(os.path.abspath(__file__))
 image_path = os.path.join(base_dir, "papusprogramming.png")  # Make sure this file is in the same directory
+leaderboard_path = os.path.join(base_dir, "leaderboard.txt") # Make sure this file is in the same directory
+
+def save_leaderboard(entries):
+    with open(leaderboard_path, "w") as f:
+        for name, score in entries:
+            f.write(f"{name}:{score}\n")
 
 def update_leaderboard(name, new_score):
     leaderboard = load_leaderboard()
-    if len(leaderboard) < 8 or new_score > leaderboard[-1][1]:
-        try:
-            data = {"name": name, "score": new_score}
-            requests.post(f"{FIREBASE_DB_URL}/scores.json", json=data)
-        except Exception as e:
-            print("Failed to update leaderboard:", e)
+    leaderboard.append((name, new_score))
+    leaderboard = sorted(leaderboard, key=lambda x: x[1], reverse=True)[:8]
+    save_leaderboard(leaderboard)
 
 def check_high_score(new_score):
     leaderboard = load_leaderboard()
@@ -124,7 +126,7 @@ def show_intro():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
-        if pygame.time.get_ticks() - start_time > 3000:
+        if pygame.time.get_ticks() - start_time > 2000:
             showing = False
 
 pygame.mixer.init()
@@ -344,4 +346,3 @@ while running:
     pygame.display.update()
 
 pygame.quit()
-
