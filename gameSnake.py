@@ -7,6 +7,8 @@ import random
 import sys
 import os
 
+music_muted = False
+
 pygame.init()
 
 menu_options = ["Play", "Leaderboard", "Credits", "Exit"]
@@ -126,7 +128,17 @@ def show_intro():
         if pygame.time.get_ticks() - start_time > 3000:
             showing = False
 
+pygame.mixer.init()
 
+# Load sounds
+background_music_path = os.path.join(base_dir, "background.wav")
+eat_sound = pygame.mixer.Sound(os.path.join(base_dir, "eat.wav"))
+death_sound = pygame.mixer.Sound(os.path.join(base_dir, "death.wav"))
+
+# Start background music
+pygame.mixer.music.load(background_music_path)
+pygame.mixer.music.set_volume(0.5)
+pygame.mixer.music.play(-1)  # Loop forever
 
 # Bucle principal
 show_intro()
@@ -141,6 +153,15 @@ while running:
             running = False
 
         elif event.type == pygame.KEYDOWN:
+
+             # Toggle music mute with M key
+            if event.key == pygame.K_m:
+                music_muted = not music_muted
+                if music_muted:
+                    pygame.mixer.music.set_volume(0)
+                else:
+                    pygame.mixer.music.set_volume(0.5) 
+
             if state == "Menu":
                 if event.key == pygame.K_UP:
                     selected_option = (selected_option - 1) % len(menu_options)
@@ -148,6 +169,7 @@ while running:
                     selected_option = (selected_option + 1) % len(menu_options)
                 elif event.key == pygame.K_RETURN or event.key == 1073741912:
                     selected = menu_options[selected_option]
+
                     if selected == "Play":
                         state = "Playing"
                         reset_game()
@@ -212,6 +234,7 @@ while running:
         snake.insert(0, new_head)
 
         if new_head in snake[1:]:
+            death_sound.play()
             game_over = True
             if check_high_score(score):
                 if score > highest_score:
@@ -222,6 +245,7 @@ while running:
                 state = "GameOver"
 
         if new_head.colliderect(food):
+            eat_sound.play()
             score += 50
             update_speed()
             food.x = random.randint(0, (width - cellsize) // cellsize) * cellsize
@@ -256,6 +280,9 @@ while running:
         pygame.draw.rect(screen, Red, food)
         s_text = pygame.font.SysFont(None, 36).render(f"Score: {score}", True, White)
         screen.blit(s_text, (10, 10))
+        mute_status = pygame.font.SysFont(None, 24).render("Muted" if music_muted else "Press M to Mute", True, White)
+        screen.blit(mute_status, (width - mute_status.get_width() - 10, 10))
+
 
     elif state == "GameOver":
         go_font = pygame.font.SysFont(None, 60)
