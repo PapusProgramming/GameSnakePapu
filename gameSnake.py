@@ -145,7 +145,7 @@ while running:
                     selected_option = (selected_option - 1) % len(menu_options)
                 elif event.key == pygame.K_DOWN:
                     selected_option = (selected_option + 1) % len(menu_options)
-                elif event.key == pygame.K_RETURN or event.key == 1073741912:
+                elif if event.key in pygame.K_RETURN, pygame.K_KP_ENTER:
                     selected = menu_options[selected_option]
                     if selected == "Play":
                         state = "Playing"
@@ -175,8 +175,9 @@ while running:
                 state = "Menu"
 
             elif state == "EnterName":
-                if event.key == pygame.K_RETURN or event.key == 1073741912 and input_name:
-                    update_leaderboard(input_name, score)
+                if (event.key in (pygame.K_RETURN, pygame.K_KP_ENTER)):
+                    if check_high_score(score):
+                        update_leaderboard(input_name, score)
                     input_name = ""
                     new_high_score = False
                     highest_score = get_highest_score()
