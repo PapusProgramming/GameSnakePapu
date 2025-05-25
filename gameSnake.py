@@ -276,10 +276,6 @@ while running:
     screen.fill(Black)
 
     # Show "Press Q to Quit" ONLY when playing:
-    if state == "Playing":
-        quit_msg = pygame.font.SysFont(None, 24).render("Press Q to Quit", True, White)
-        screen.blit(quit_msg, (width // 2 - quit_msg.get_width() // 2, 10))
-
     if state == "Menu":
         title = font.render("Snake de Papu", True, Green)
         screen.blit(title, (width // 2 - title.get_width() // 2, 50))
@@ -322,6 +318,10 @@ while running:
         
         pause_status = pygame.font.SysFont(None, 24).render("Press P to Pause", True, White)
         screen.blit(pause_status, (width - pause_status.get_width() - 10, 30))
+
+        if state == "Playing":
+            quit_msg = pygame.font.SysFont(None, 24).render("Press Q to Quit", True, White)
+            screen.blit(quit_msg, (width // 2 - quit_msg.get_width() // 2, 10))
 
     elif state == "GameOver":
         go_font = pygame.font.SysFont(None, 60)
