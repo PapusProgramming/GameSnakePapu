@@ -189,6 +189,12 @@ while running:
                 elif event.key == pygame.K_RETURN:
                     selected = pause_menu_options[paused_option]
                     if selected == "Resume":
+                        for i in range (3, 0, -1):
+                            screen.fill(Black)
+                            countdown = font.render(str(i), True, White)
+                            screen.blit(countdown, (width // 2 - countdown.get_width() // 2, height // 2))
+                            pygame.display.update()
+                            pygame.time.delay(1000)
                         state = "Playing"
                     elif selected == "Toggle Sound Effects":
                         sound_effects_enabled = not sound_effects_enabled
