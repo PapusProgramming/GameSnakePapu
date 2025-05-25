@@ -138,7 +138,8 @@ while running:
             running = False
 
         elif event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_m:
+            # Only toggle music on M if NOT entering name
+            if event.key == pygame.K_m and state not in ("EnterName",):
                 music_muted = not music_muted
                 pygame.mixer.music.set_volume(0 if music_muted else 0.5)
 
@@ -352,7 +353,7 @@ while running:
             entry_text = small_font.render(f"{i+1}. {name}: {score_}", True, White)
             screen.blit(entry_text, (width // 2 - entry_text.get_width() // 2, 120 + i * 30))
 
-        esc = small_font.render("Press ESC to return", True, White)
+        esc = small_font.render("Press ESC to return", True, Red)
         screen.blit(esc, (width // 2 - esc.get_width() // 2, height - 50))
 
     pygame.display.update()
