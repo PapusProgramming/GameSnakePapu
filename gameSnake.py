@@ -1,6 +1,3 @@
-#check if there is a way to make it more online-like?
-#global variable for enter key
-
 #!/usr/bin/env python3
 
 import pygame
