@@ -138,6 +138,13 @@ while running:
             running = False
 
         elif event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_q:
+                if state == "Playing":
+                    reset_game()
+                    state = "Menu"
+                else:
+                    running = False  # Quit only if not playing
+
             # Only toggle music on M if NOT entering name
             if event.key == pygame.K_m and state not in ("EnterName",):
                 music_muted = not music_muted
@@ -259,9 +266,12 @@ while running:
 
         player = new_head
 
-    # The rest of your drawing and states code remains unchanged...
-
     screen.fill(Black)
+
+    # Show "Press Q to Quit" ONLY when playing:
+    if state == "Playing":
+        quit_msg = pygame.font.SysFont(None, 24).render("Press Q to Quit", True, White)
+        screen.blit(quit_msg, (width // 2 - quit_msg.get_width() // 2, 10))
 
     if state == "Menu":
         title = font.render("Snake de Papu", True, Green)
@@ -299,8 +309,12 @@ while running:
         pygame.draw.rect(screen, Red, food)
         s_text = pygame.font.SysFont(None, 36).render(f"Score: {score}", True, White)
         screen.blit(s_text, (10, 10))
+        
         mute_status = pygame.font.SysFont(None, 24).render("Muted" if music_muted else "Press M to Mute", True, White)
         screen.blit(mute_status, (width - mute_status.get_width() - 10, 10))
+        
+        pause_status = pygame.font.SysFont(None, 24).render("Press P to Pause", True, White)
+        screen.blit(pause_status, (width - pause_status.get_width() - 10, 30))
 
     elif state == "GameOver":
         go_font = pygame.font.SysFont(None, 60)
@@ -308,54 +322,36 @@ while running:
         screen.blit(go_text, (width // 2 - go_text.get_width() // 2, height // 2 - 100))
 
         font_small = pygame.font.SysFont(None, 36)
-        restart = font_small.render("Press SPACE to Restart", True, White)
-        esc = font_small.render("Press ESC to Main Menu", True, Red)
-        s_text = font_small.render(f"Score: {score}", True, White)
-
+        restart = font_small.render("Press Enter to Restart or Q to Quit", True, White)
         screen.blit(restart, (width // 2 - restart.get_width() // 2, height // 2))
-        screen.blit(esc, (width // 2 - esc.get_width() // 2, height // 2 + 40))
-        screen.blit(s_text, (width // 2 - s_text.get_width() // 2, height // 2 + 80))
 
+        # Wait for Enter or Q to restart or quit
         keys = pygame.key.get_pressed()
-        if keys[pygame.K_SPACE]:
+        if keys[pygame.K_RETURN]:
             reset_game()
-            game_over = False
             state = "Playing"
-        elif keys[pygame.K_ESCAPE]:
-            reset_game()
             game_over = False
-            state = "Menu"
-
-    elif state == "EnterName":
-        if new_high_score:
-            prompt = font.render("New All-Time High Score!", True, Red)
-        else:
-            prompt = font.render("New High Score!", True, Green)
-
-        screen.blit(prompt, (width // 2 - prompt.get_width() // 2, 50))
-
-        entry_prompt = pygame.font.SysFont(None, 32).render("Enter your name:", True, White)
-        screen.blit(entry_prompt, (width // 2 - entry_prompt.get_width() // 2, 120))
-
-        entry_box = pygame.font.SysFont(None, 40).render(input_name, True, Red)
-        screen.blit(entry_box, (width // 2 - entry_box.get_width() // 2, 160))
-
-        inst = pygame.font.SysFont(None, 24).render("Press Enter to save, ESC to cancel", True, White)
-        screen.blit(inst, (width // 2 - inst.get_width() // 2, height - 50))
 
     elif state == "Leaderboard":
         title = font.render("Leaderboard", True, Green)
-        screen.blit(title, (width // 2 - title.get_width() // 2, 50))
-
+        screen.blit(title, (width // 2 - title.get_width() // 2, 20))
         leaderboard = load_leaderboard()
-        small_font = pygame.font.SysFont(None, 32)
-        for i, (name, score_) in enumerate(leaderboard):
-            entry_text = small_font.render(f"{i+1}. {name}: {score_}", True, White)
-            screen.blit(entry_text, (width // 2 - entry_text.get_width() // 2, 120 + i * 30))
+        small_font = pygame.font.SysFont(None, 30)
+        for i, (name, score_entry) in enumerate(leaderboard):
+            text = small_font.render(f"{i+1}. {name} - {score_entry}", True, White)
+            screen.blit(text, (width // 2 - text.get_width() // 2, 80 + i * 30))
+        esc = small_font.render("Press ESC to Return", True, White)
+        screen.blit(esc, (width // 2 - esc.get_width() // 2, height - 40))
 
-        esc = small_font.render("Press ESC to return", True, Red)
-        screen.blit(esc, (width // 2 - esc.get_width() // 2, height - 50))
+    elif state == "EnterName":
+        prompt = font.render("New High Score! Enter Name:", True, Green)
+        screen.blit(prompt, (width // 2 - prompt.get_width() // 2, height // 2 - 80))
+        name_text = font.render(input_name, True, White)
+        screen.blit(name_text, (width // 2 - name_text.get_width() // 2, height // 2))
+        info = pygame.font.SysFont(None, 24).render("Enter to Submit, ESC to Cancel", True, White)
+        screen.blit(info, (width // 2 - info.get_width() // 2, height // 2 + 60))
 
     pygame.display.update()
 
 pygame.quit()
+sys.exit()
