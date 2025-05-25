@@ -7,6 +7,9 @@ import os
 import requests
 
 music_muted = False
+sound_effects_enabled = True
+paused_option = 0
+pause_menu_options = ["Resume", "Toggle Sound Effects", "Toggle Music", "Main Menu"]
 
 pygame.init()
 
@@ -17,42 +20,32 @@ input_name = ""
 name_enter_active = False
 new_high_score = False
 
-# Configurar pantalla
 width, height = 600, 400
 screen = pygame.display.set_mode((width, height))
 pygame.display.set_caption("PapuSnakeGame")
 
-# Colores
 Black = (0, 0, 0)
 Green = (50, 205, 50)
 Red = (255, 0, 0)
 White = (255, 255, 255)
 
-# Jugador (serpiente)
 cellsize = 20
 player = pygame.Rect(300, 200, cellsize, cellsize)
 snake = [player.copy()]
 velocity = cellsize
 direction = "right"
+next_direction = direction  # <-- ADDED: separate variable for input direction
 speed_level = 1
 
-# Comida
 food = pygame.Rect(
     random.randint(0, (width - cellsize) // cellsize) * cellsize,
     random.randint(0, (height - cellsize) // cellsize) * cellsize,
     cellsize, cellsize
 )
 
-# Reloj de FPS
 CLOCK = pygame.time.Clock()
-
-# Fuente
 font = pygame.font.SysFont(None, 48)
-
-# Main game velocity
 fps = 10
-
-# Puntuacion
 score = 0
 
 def update_speed():
@@ -60,15 +53,15 @@ def update_speed():
     fps = 10 + (score // 1000) * 2
 
 def reset_game():
-    global snake, player, direction, food, score
+    global snake, player, direction, next_direction, food, score
     player = pygame.Rect(300, 200, cellsize, cellsize)
     snake = [player.copy()]
     direction = "right"
+    next_direction = direction  # Reset next_direction as well
     food.x = random.randint(0, (width - cellsize) // cellsize) * cellsize
     food.y = random.randint(0, (height - cellsize) // cellsize) * cellsize
     score = 0
 
-# Online leaderboard
 FIREBASE_DB_URL = "https://papusnakeleaderboard-default-rtdb.firebaseio.com/"
 
 def load_leaderboard():
@@ -82,9 +75,8 @@ def load_leaderboard():
         print("Failed to load leaderboard:", e)
     return []
 
-# Get path to this script's directory
 base_dir = os.path.dirname(os.path.abspath(__file__))
-image_path = os.path.join(base_dir, "papusprogramming.png")  # Make sure this file is in the same directory
+image_path = os.path.join(base_dir, "papusprogramming.png")
 
 def update_leaderboard(name, new_score):
     leaderboard = load_leaderboard()
@@ -107,7 +99,6 @@ def get_highest_score():
 
 highest_score = get_highest_score()
 
-# Load and scale the intro image
 intro_image = pygame.image.load(image_path)
 intro_image = pygame.transform.scale(intro_image, (550, 350))
 
@@ -127,17 +118,14 @@ def show_intro():
 
 pygame.mixer.init()
 
-# Load sounds
 background_music_path = os.path.join(base_dir, "background.wav")
 eat_sound = pygame.mixer.Sound(os.path.join(base_dir, "eat.wav"))
 death_sound = pygame.mixer.Sound(os.path.join(base_dir, "death.wav"))
 
-# Start background music
 pygame.mixer.music.load(background_music_path)
 pygame.mixer.music.set_volume(0.5)
-pygame.mixer.music.play(-1)  # Loop forever
+pygame.mixer.music.play(-1)
 
-# Bucle principal
 show_intro()
 running = True
 game_over = False
@@ -150,23 +138,17 @@ while running:
             running = False
 
         elif event.type == pygame.KEYDOWN:
-
-             # Toggle music mute with M key
             if event.key == pygame.K_m:
                 music_muted = not music_muted
-                if music_muted:
-                    pygame.mixer.music.set_volume(0)
-                else:
-                    pygame.mixer.music.set_volume(0.5) 
+                pygame.mixer.music.set_volume(0 if music_muted else 0.5)
 
             if state == "Menu":
                 if event.key == pygame.K_UP:
                     selected_option = (selected_option - 1) % len(menu_options)
                 elif event.key == pygame.K_DOWN:
                     selected_option = (selected_option + 1) % len(menu_options)
-                elif event.key == pygame.K_RETURN or event.key == 1073741912:
+                elif event.key == pygame.K_RETURN:
                     selected = menu_options[selected_option]
-
                     if selected == "Play":
                         state = "Playing"
                         reset_game()
@@ -179,14 +161,35 @@ while running:
                         running = False
 
             elif state == "Playing":
+                # ONLY set next_direction here, never directly direction
                 if event.key == pygame.K_LEFT and direction != "right":
-                    direction = "left"
+                    next_direction = "left"
                 elif event.key == pygame.K_RIGHT and direction != "left":
-                    direction = "right"
+                    next_direction = "right"
                 elif event.key == pygame.K_UP and direction != "down":
-                    direction = "up"
+                    next_direction = "up"
                 elif event.key == pygame.K_DOWN and direction != "up":
-                    direction = "down"
+                    next_direction = "down"
+                elif event.key == pygame.K_p:
+                    state = "Paused"
+
+            elif state == "Paused":
+                if event.key == pygame.K_UP:
+                    paused_option = (paused_option - 1) % len(pause_menu_options)
+                elif event.key == pygame.K_DOWN:
+                    paused_option = (paused_option + 1) % len(pause_menu_options)
+                elif event.key == pygame.K_RETURN:
+                    selected = pause_menu_options[paused_option]
+                    if selected == "Resume":
+                        state = "Playing"
+                    elif selected == "Toggle Sound Effects":
+                        sound_effects_enabled = not sound_effects_enabled
+                    elif selected == "Toggle Music":
+                        music_muted = not music_muted
+                        pygame.mixer.music.set_volume(0 if music_muted else 0.5)
+                    elif selected == "Main Menu":
+                        reset_game()
+                        state = "Menu"
 
             elif state == "Credits" and event.key == pygame.K_ESCAPE:
                 state = "Menu"
@@ -195,7 +198,7 @@ while running:
                 state = "Menu"
 
             elif state == "EnterName":
-                if event.key == pygame.K_RETURN or event.key == 1073741912 and input_name:
+                if (event.key == pygame.K_RETURN or event.key == 1073741912) and input_name:
                     update_leaderboard(input_name, score)
                     input_name = ""
                     new_high_score = False
@@ -213,8 +216,10 @@ while running:
                         if char.isalnum() or char in " _-":
                             input_name += char
 
-    # Game logic
     if state == "Playing" and not game_over:
+        # Update direction from next_direction before moving
+        direction = next_direction
+
         if direction == "left":
             new_head = player.move(-velocity, 0)
         elif direction == "right":
@@ -224,14 +229,14 @@ while running:
         elif direction == "down":
             new_head = player.move(0, velocity)
 
-        # Warp
         new_head.x %= width
         new_head.y %= height
 
         snake.insert(0, new_head)
 
         if new_head in snake[1:]:
-            death_sound.play()
+            if sound_effects_enabled:
+                death_sound.play()
             game_over = True
             if check_high_score(score):
                 if score > highest_score:
@@ -242,7 +247,8 @@ while running:
                 state = "GameOver"
 
         if new_head.colliderect(food):
-            eat_sound.play()
+            if sound_effects_enabled:
+                eat_sound.play()
             score += 50
             update_speed()
             food.x = random.randint(0, (width - cellsize) // cellsize) * cellsize
@@ -252,7 +258,8 @@ while running:
 
         player = new_head
 
-    # Draw everything
+    # The rest of your drawing and states code remains unchanged...
+
     screen.fill(Black)
 
     if state == "Menu":
@@ -271,6 +278,20 @@ while running:
         esc = pygame.font.SysFont(None, 32).render("Press ESC to Return", True, White)
         screen.blit(esc, (width // 2 - esc.get_width() // 2, height - 50))
 
+    elif state == "Paused":
+        pause_title = font.render("Game Paused", True, Green)
+        screen.blit(pause_title, (width // 2 - pause_title.get_width() // 2, 50))
+
+        for i, option in enumerate(pause_menu_options):
+            label = option
+            if option == "Toggle Sound Effects":
+                label += f" ({'On' if sound_effects_enabled else 'Off'})"
+            if option == "Toggle Music":
+                label += f" ({'Off' if music_muted else 'On'})"
+            color = Red if i == paused_option else White
+            text = pygame.font.SysFont(None, 36).render(label, True, color)
+            screen.blit(text, (width // 2 - text.get_width() // 2, 150 + i * 40))
+
     elif state == "Playing":
         for segment in snake:
             pygame.draw.rect(screen, Green, segment)
@@ -279,7 +300,6 @@ while running:
         screen.blit(s_text, (10, 10))
         mute_status = pygame.font.SysFont(None, 24).render("Muted" if music_muted else "Press M to Mute", True, White)
         screen.blit(mute_status, (width - mute_status.get_width() - 10, 10))
-
 
     elif state == "GameOver":
         go_font = pygame.font.SysFont(None, 60)
@@ -307,7 +327,7 @@ while running:
 
     elif state == "EnterName":
         if new_high_score:
-            prompt = font.render("🔥 New All-Time High Score! 🔥", True, Red)
+            prompt = font.render("New All-Time High Score!", True, Red)
         else:
             prompt = font.render("New High Score!", True, Green)
 
@@ -320,26 +340,21 @@ while running:
         screen.blit(entry_box, (width // 2 - entry_box.get_width() // 2, 160))
 
         inst = pygame.font.SysFont(None, 24).render("Press Enter to save, ESC to cancel", True, White)
-        screen.blit(inst, (width // 2 - inst.get_width() // 2, height - 40))
+        screen.blit(inst, (width // 2 - inst.get_width() // 2, height - 50))
 
     elif state == "Leaderboard":
         title = font.render("Leaderboard", True, Green)
         screen.blit(title, (width // 2 - title.get_width() // 2, 50))
 
         leaderboard = load_leaderboard()
-        font_small = pygame.font.SysFont(None, 32)
+        small_font = pygame.font.SysFont(None, 32)
+        for i, (name, score_) in enumerate(leaderboard):
+            entry_text = small_font.render(f"{i+1}. {name}: {score_}", True, White)
+            screen.blit(entry_text, (width // 2 - entry_text.get_width() // 2, 120 + i * 30))
 
-        for i, (name, score_value) in enumerate(leaderboard):
-            rank_text = font_small.render(f"{i + 1}. {name}", True, White)
-            score_text = font_small.render(str(score_value), True, White)
-            y = 120 + i * 30
-            screen.blit(rank_text, (50, y))
-            screen.blit(score_text, (400, y))
-
-        back = font_small.render("Press ESC to Return", True, Red)
-        screen.blit(back, (width // 2 - back.get_width() // 2, height - 40))
+        esc = small_font.render("Press ESC to return", True, White)
+        screen.blit(esc, (width // 2 - esc.get_width() // 2, height - 50))
 
     pygame.display.update()
 
 pygame.quit()
-
