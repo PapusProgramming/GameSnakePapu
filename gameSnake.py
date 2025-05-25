@@ -156,7 +156,7 @@ while running:
                     selected_option = (selected_option - 1) % len(menu_options)
                 elif event.key == pygame.K_DOWN:
                     selected_option = (selected_option + 1) % len(menu_options)
-                elif event.key == pygame.K_RETURN:
+                elif event.key == pygame.K_RETURN or event.key == 1073741912:
                     selected = menu_options[selected_option]
                     if selected == "Play":
                         state = "Playing"
@@ -187,7 +187,7 @@ while running:
                     paused_option = (paused_option - 1) % len(pause_menu_options)
                 elif event.key == pygame.K_DOWN:
                     paused_option = (paused_option + 1) % len(pause_menu_options)
-                elif event.key == pygame.K_RETURN:
+                elif event.key == pygame.K_RETURN or event.key == 1073741912:
                     selected = pause_menu_options[paused_option]
                     if selected == "Resume":
                         for i in range (3, 0, -1):
@@ -334,7 +334,7 @@ while running:
 
         # Wait for Enter or Q to restart or quit
         keys = pygame.key.get_pressed()
-        if keys[pygame.K_RETURN]:
+        if keys[pygame.K_RETURN or event.key == 1073741912]:
             reset_game()
             state = "Playing"
             game_over = False
