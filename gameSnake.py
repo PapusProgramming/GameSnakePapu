@@ -165,6 +165,10 @@ while running:
                     state = "Menu"
                     game_over = False
                     game_over_zoom_in_animation.done = False  # Reset animation flag on quit
+                elif state == "Leaderboard":
+                    pass
+                elif state == "Credits":
+                    pass
                 else:
                     running = False
 
@@ -377,7 +381,7 @@ while running:
         for i, (name, scr) in enumerate(leaderboard):
             entry = pygame.font.SysFont(None, 32).render(f"{i+1}. {name} - {scr}", True, White)
             screen.blit(entry, (width // 2 - entry.get_width() // 2, 100 + i * 30))
-        esc = pygame.font.SysFont(None, 24).render("Press ESC to Return", True, White)
+        esc = pygame.font.SysFont(None, 24).render("Press ESC to Return", True, Red)
         screen.blit(esc, (width // 2 - esc.get_width() // 2, height - 50))
 
     elif state == "EnterName":
