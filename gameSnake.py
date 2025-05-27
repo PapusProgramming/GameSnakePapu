@@ -1,4 +1,3 @@
-
 #!/usr/bin/env python3
 
 import pygame
@@ -35,7 +34,7 @@ player = pygame.Rect(300, 200, cellsize, cellsize)
 snake = [player.copy()]
 velocity = cellsize
 direction = "right"
-next_direction = direction  # <-- ADDED: separate variable for input direction
+next_direction = direction
 speed_level = 1
 
 food = pygame.Rect(
@@ -58,7 +57,7 @@ def reset_game():
     player = pygame.Rect(300, 200, cellsize, cellsize)
     snake = [player.copy()]
     direction = "right"
-    next_direction = direction  # Reset next_direction as well
+    next_direction = direction
     food.x = random.randint(0, (width - cellsize) // cellsize) * cellsize
     food.y = random.randint(0, (height - cellsize) // cellsize) * cellsize
     score = 0
@@ -140,13 +139,13 @@ while running:
 
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_q:
-                if state == "Playing":
+                if state in ("Playing", "GameOver"):
                     reset_game()
                     state = "Menu"
+                    game_over = False
                 else:
-                    running = False  # Quit only if not playing
+                    running = False
 
-            # Only toggle music on M if NOT entering name
             if event.key == pygame.K_m and state not in ("EnterName",):
                 music_muted = not music_muted
                 pygame.mixer.music.set_volume(0 if music_muted else 0.5)
@@ -170,7 +169,6 @@ while running:
                         running = False
 
             elif state == "Playing":
-                # ONLY set next_direction here, never directly direction
                 if event.key == pygame.K_LEFT and direction != "right":
                     next_direction = "left"
                 elif event.key == pygame.K_RIGHT and direction != "left":
@@ -232,7 +230,6 @@ while running:
                             input_name += char
 
     if state == "Playing" and not game_over:
-        # Update direction from next_direction before moving
         direction = next_direction
 
         if direction == "left":
@@ -275,7 +272,6 @@ while running:
 
     screen.fill(Black)
 
-    # Show "Press Q to Quit" ONLY when playing:
     if state == "Menu":
         title = font.render("Snake de Papu", True, Green)
         screen.blit(title, (width // 2 - title.get_width() // 2, 50))
@@ -312,14 +308,11 @@ while running:
         pygame.draw.rect(screen, Red, food)
         s_text = pygame.font.SysFont(None, 36).render(f"Score: {score}", True, White)
         screen.blit(s_text, (10, 10))
-        
         mute_status = pygame.font.SysFont(None, 24).render("Muted" if music_muted else "Press M to Mute", True, White)
         screen.blit(mute_status, (width - mute_status.get_width() - 10, 10))
-        
         pause_status = pygame.font.SysFont(None, 24).render("Press P to Pause", True, White)
         screen.blit(pause_status, (width - pause_status.get_width() - 10, 30))
-
-        quit_msg = pygame.font.SysFont(None, 24).render("Press Q to Quit", True, White)
+        quit_msg = pygame.font.SysFont(None, 24).render("Press Q for Main Menu", True, White)
         screen.blit(quit_msg, (width // 2 - quit_msg.get_width() // 2, 10))
 
     elif state == "GameOver":
@@ -328,10 +321,9 @@ while running:
         screen.blit(go_text, (width // 2 - go_text.get_width() // 2, height // 2 - 100))
 
         font_small = pygame.font.SysFont(None, 36)
-        restart = font_small.render("Press Enter to Restart or Q to Quit", True, White)
+        restart = font_small.render("Press Enter to Restart or Q for Main Menu", True, White)
         screen.blit(restart, (width // 2 - restart.get_width() // 2, height // 2))
 
-        # Wait for Enter or Q to restart or quit
         keys = pygame.key.get_pressed()
         if keys[pygame.K_RETURN or event.key == 1073741912]:
             reset_game()
