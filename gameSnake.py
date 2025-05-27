@@ -130,6 +130,24 @@ show_intro()
 running = True
 game_over = False
 
+# Zoom-in animation function for Game Over text
+def game_over_zoom_in_animation():
+    base_font = pygame.font.SysFont(None, 60)
+    max_size = 100
+    min_size = 20
+    steps = 15
+    for step in range(steps):
+        size = min_size + (max_size - min_size) * (step / (steps - 1))
+        font_zoom = pygame.font.SysFont(None, int(size))
+        text = font_zoom.render("Game Over", True, Red)
+        screen.fill(Black)
+        screen.blit(text, (width // 2 - text.get_width() // 2, height // 2 - text.get_height() // 2))
+        pygame.display.update()
+        pygame.time.delay(50)
+
+# Add a flag attribute to remember if animation ran
+game_over_zoom_in_animation.done = False
+
 while running:
     CLOCK.tick(fps)
 
@@ -143,6 +161,7 @@ while running:
                     reset_game()
                     state = "Menu"
                     game_over = False
+                    game_over_zoom_in_animation.done = False  # Reset animation flag on quit
                 else:
                     running = False
 
@@ -161,6 +180,7 @@ while running:
                         state = "Playing"
                         reset_game()
                         game_over = False
+                        game_over_zoom_in_animation.done = False
                     elif selected == "Leaderboard":
                         state = "Leaderboard"
                     elif selected == "Credits":
@@ -203,6 +223,7 @@ while running:
                     elif selected == "Main Menu":
                         reset_game()
                         state = "Menu"
+                        game_over_zoom_in_animation.done = False
 
             elif state == "Credits" and event.key == pygame.K_ESCAPE:
                 state = "Menu"
@@ -257,6 +278,7 @@ while running:
                 input_name = ""
             else:
                 state = "GameOver"
+                game_over_zoom_in_animation.done = False  # Reset animation flag when first entering GameOver
 
         if new_head.colliderect(food):
             if sound_effects_enabled:
@@ -316,40 +338,53 @@ while running:
         screen.blit(quit_msg, (width // 2 - quit_msg.get_width() // 2, 10))
 
     elif state == "GameOver":
-        go_font = pygame.font.SysFont(None, 60)
-        go_text = go_font.render("Game Over", True, Red)
-        screen.blit(go_text, (width // 2 - go_text.get_width() // 2, height // 2 - 100))
+        # Run zoom-in animation once
+        if not game_over_zoom_in_animation.done:
+            game_over_zoom_in_animation.done = True
+            game_over_zoom_in_animation()
 
-        font_small = pygame.font.SysFont(None, 36)
-        restart = font_small.render("Press Enter to Restart or Q for Main Menu", True, White)
-        screen.blit(restart, (width // 2 - restart.get_width() // 2, height // 2))
+        # Draw "Game Over" in red at fixed size near the top
+        game_over_font = pygame.font.SysFont(None, 72)
+        game_over_text = game_over_font.render("Game Over", True, Red)
+        screen.blit(game_over_text, (width // 2 - game_over_text.get_width() // 2, height // 2 - 100))
 
+        # Show prompt text below the Game Over text
+        prompt_font = pygame.font.SysFont(None, 36)
+        prompt_text = prompt_font.render("Press Enter to Restart or Q for Main Menu", True, White)
+        screen.blit(prompt_text, (width // 2 - prompt_text.get_width() // 2, height // 2))
+
+        # Check for input here (also handled in event loop)
         keys = pygame.key.get_pressed()
-        if keys[pygame.K_RETURN or event.key == 1073741912]:
+        if keys[pygame.K_RETURN] or keys[1073741912]:
             reset_game()
             state = "Playing"
             game_over = False
+            game_over_zoom_in_animation.done = False
+        elif keys[pygame.K_q]:
+            reset_game()
+            state = "Menu"
+            game_over = False
+            game_over_zoom_in_animation.done = False
+
 
     elif state == "Leaderboard":
         title = font.render("Leaderboard", True, Green)
-        screen.blit(title, (width // 2 - title.get_width() // 2, 20))
+        screen.blit(title, (width // 2 - title.get_width() // 2, 50))
         leaderboard = load_leaderboard()
-        small_font = pygame.font.SysFont(None, 30)
-        for i, (name, score_entry) in enumerate(leaderboard):
-            text = small_font.render(f"{i+1}. {name} - {score_entry}", True, White)
-            screen.blit(text, (width // 2 - text.get_width() // 2, 80 + i * 30))
-        esc = small_font.render("Press ESC to Return", True, White)
-        screen.blit(esc, (width // 2 - esc.get_width() // 2, height - 40))
+        for i, (name, scr) in enumerate(leaderboard):
+            entry = pygame.font.SysFont(None, 32).render(f"{i+1}. {name} - {scr}", True, White)
+            screen.blit(entry, (width // 2 - entry.get_width() // 2, 100 + i * 30))
+        esc = pygame.font.SysFont(None, 24).render("Press ESC to Return", True, White)
+        screen.blit(esc, (width // 2 - esc.get_width() // 2, height - 50))
 
     elif state == "EnterName":
-        prompt = font.render("New High Score! Enter Name:", True, Green)
-        screen.blit(prompt, (width // 2 - prompt.get_width() // 2, height // 2 - 80))
-        name_text = font.render(input_name, True, White)
-        screen.blit(name_text, (width // 2 - name_text.get_width() // 2, height // 2))
-        info = pygame.font.SysFont(None, 24).render("Enter to Submit, ESC to Cancel", True, White)
-        screen.blit(info, (width // 2 - info.get_width() // 2, height // 2 + 60))
+        prompt = font.render("New High Score! Enter your name:", True, Green)
+        screen.blit(prompt, (width // 2 - prompt.get_width() // 2, 100))
+        name_surface = font.render(input_name, True, White)
+        screen.blit(name_surface, (width // 2 - name_surface.get_width() // 2, 150))
+        esc = pygame.font.SysFont(None, 24).render("Press ESC to Cancel", True, White)
+        screen.blit(esc, (width // 2 - esc.get_width() // 2, height - 50))
 
     pygame.display.update()
 
 pygame.quit()
-sys.exit()
