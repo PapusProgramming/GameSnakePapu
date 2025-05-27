@@ -384,8 +384,13 @@ while running:
     elif state == "EnterName":
         prompt = font.render("New High Score! Enter your name:", True, Green)
         screen.blit(prompt, (width // 2 - prompt.get_width() // 2, 100))
-        name_surface = font.render(input_name, True, White)
+        
+        # Calculate blinking cursor
+        cursor_char = "|" if pygame.time.get_ticks() // 500 % 2 == 0 else ""
+        name_with_cursor = input_name + cursor_char
+        name_surface = font.render(name_with_cursor, True, White)
         screen.blit(name_surface, (width // 2 - name_surface.get_width() // 2, 150))
+        
         esc = pygame.font.SysFont(None, 24).render("Press ESC to Cancel", True, White)
         screen.blit(esc, (width // 2 - esc.get_width() // 2, height - 50))
 
