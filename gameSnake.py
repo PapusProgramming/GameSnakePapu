@@ -1,6 +1,3 @@
-#Fix Q in pause
-#Fix snake on top of Press Q
-#Highscore, fix q for keep in game
 #!/usr/bin/env python3
 
 import pygame
